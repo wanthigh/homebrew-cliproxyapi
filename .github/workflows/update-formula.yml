@@ -1,4 +1,4 @@
-name: Update Formula with Latest Version
+name: Update Formula with Latest Versions
 
 on:
   schedule:
@@ -16,76 +16,148 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check latest CLIProxyAPI version
+      - name: Check for new versions
         id: check
         run: |
-          # 获取最新版本信息
-          LATEST=$(curl -s https://api.github.com/repos/router-for-me/CLIProxyAPI/releases/latest | jq -r '.tag_name' | sed 's/v//')
-          CURRENT=$(grep 'version "' Formula/cliproxyapi.rb | head -1 | sed 's/.*version "//' | sed 's/".*//')
+          # 获取 GitHub 上最新的50个版本
+          GITHUB_VERSIONS=$(curl -s "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases?per_page=50" | jq -r '.[].tag_name' | sed 's/v//' | sort -V)
 
-          echo "latest=$LATEST" >> $GITHUB_OUTPUT
-          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          # 找出新增的版本（本地没有的）
+          NEW_VERSIONS=""
+          for v in $GITHUB_VERSIONS; do
+            if [ ! -f "Formula/cliproxyapi@${v}.rb" ]; then
+              NEW_VERSIONS="$NEW_VERSIONS $v"
+            fi
+          done
 
-          if [ "$LATEST" != "$CURRENT" ]; then
+          NEW_VERSIONS=$(echo $NEW_VERSIONS | xargs)
+          LATEST_VERSION=$(echo "$GITHUB_VERSIONS" | tail -1)
+
+          echo "new_versions=$NEW_VERSIONS" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+          if [ -n "$NEW_VERSIONS" ]; then
             echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "Found new versions: $NEW_VERSIONS"
           else
             echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "No new versions found"
           fi
 
-      - name: Get SHA256 for all platforms
-        if: steps.check.outputs.needs_update == 'true'
-        id: shas
-        run: |
-          VERSION=${{ steps.check.outputs.latest }}
-
-          # macOS Intel
-          SHA_DARWIN_AMD64=$(curl -sL https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz | sha256sum | cut -d' ' -f1)
-
-          # macOS ARM
-          SHA_DARWIN_ARM64=$(curl -sL https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz | sha256sum | cut -d' ' -f1)
-
-          # Linux Intel
-          SHA_LINUX_AMD64=$(curl -sL https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz | sha256sum | cut -d' ' -f1)
-
-          # Linux ARM
-          SHA_LINUX_ARM64=$(curl -sL https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz | sha256sum | cut -d' ' -f1)
-
-          echo "darwin_amd64=$SHA_DARWIN_AMD64" >> $GITHUB_OUTPUT
-          echo "darwin_arm64=$SHA_DARWIN_ARM64" >> $GITHUB_OUTPUT
-          echo "linux_amd64=$SHA_LINUX_AMD64" >> $GITHUB_OUTPUT
-          echo "linux_arm64=$SHA_LINUX_ARM64" >> $GITHUB_OUTPUT
-
-      - name: Update formula
+      - name: Generate formulas for new versions
         if: steps.check.outputs.needs_update == 'true'
         run: |
-          VERSION=${{ steps.check.outputs.latest }}
-          cat > Formula/cliproxyapi.rb << 'EOF'
-class Cliproxyapi < Formula
+          # 创建临时目录存储 SHA256
+          mkdir -p /tmp/cliproxyapi-shas
+
+          IFS=' ' read -ra VERSIONS <<< "${{ steps.check.outputs.new_versions }}"
+
+          for VERSION in "${VERSIONS[@]}"; do
+            echo "Processing version: $VERSION"
+
+            # 获取 SHA256 并保存
+            curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz" | shasum -a 256 | awk '{print $1}' > /tmp/cliproxyapi-shas/${VERSION}_darwin_amd64
+
+            curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz" | shasum -a 256 | awk '{print $1}' > /tmp/cliproxyapi-shas/${VERSION}_darwin_aarch64
+
+            curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz" | shasum -a 256 | awk '{print $1}' > /tmp/cliproxyapi-shas/${VERSION}_linux_amd64
+
+            curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz" | shasum -a 256 | awk '{print $1}' > /tmp/cliproxyapi-shas/${VERSION}_linux_aarch64
+
+            # 读取 SHA256
+            SHA_DARWIN_AMD64=$(cat /tmp/cliproxyapi-shas/${VERSION}_darwin_amd64)
+            SHA_DARWIN_ARM64=$(cat /tmp/cliproxyapi-shas/${VERSION}_darwin_aarch64)
+            SHA_LINUX_AMD64=$(cat /tmp/cliproxyapi-shas/${VERSION}_linux_amd64)
+            SHA_LINUX_ARM64=$(cat /tmp/cliproxyapi-shas/${VERSION}_linux_aarch64)
+
+            # 创建 class 名称（版本号转换为有效的 Ruby class 名）
+            CLASS_NAME="CliproxyapiAT$(echo ${VERSION} | tr -d '.')"
+
+            # 创建版本化的 formula
+            cat > "Formula/cliproxyapi@${VERSION}.rb" << EOF
+class ${CLASS_NAME} < Formula
   desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
   homepage "https://github.com/router-for-me/CLIProxyAPI"
   license "MIT"
 
-  version "${{ steps.check.outputs.latest }}"
+  version "${VERSION}"
 
   on_macos do
     on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${{ steps.check.outputs.latest }}/CLIProxyAPI_${{ steps.check.outputs.latest }}_darwin_amd64.tar.gz"
-      sha256 "${{ steps.shas.outputs.darwin_amd64 }}"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz"
+      sha256 "${SHA_DARWIN_AMD64}"
     end
     on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${{ steps.check.outputs.latest }}/CLIProxyAPI_${{ steps.check.outputs.latest }}_darwin_aarch64.tar.gz"
-      sha256 "${{ steps.shas.outputs.darwin_arm64 }}"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz"
+      sha256 "${SHA_DARWIN_ARM64}"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${{ steps.check.outputs.latest }}/CLIProxyAPI_${{ steps.check.outputs.latest }}_linux_amd64.tar.gz"
-      sha256 "${{ steps.shas.outputs.linux_amd64 }}"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz"
+      sha256 "${SHA_LINUX_AMD64}"
     end
     on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${{ steps.check.outputs.latest }}/CLIProxyAPI_${{ steps.check.outputs.latest }}_linux_aarch64.tar.gz"
-      sha256 "${{ steps.shas.outputs.linux_arm64 }}"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz"
+      sha256 "${SHA_LINUX_ARM64}"
+    end
+  end
+
+  def install
+    bin.install "cli-proxy-api" => "cliproxyapi"
+  end
+
+  test do
+    assert_match "CLIProxyAPI Version: ${VERSION}", shell_output("#{bin}/cliproxyapi version")
+  end
+end
+EOF
+
+            echo "Created Formula/cliproxyapi@${VERSION}.rb"
+          done
+
+          # 保存 SHA256 到环境供下一步使用
+          cp -r /tmp/cliproxyapi-shas /tmp/shas_backup
+
+      - name: Update main formula to latest version
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.check.outputs.latest_version }}"
+
+          # 获取 SHA256
+          SHA_DARWIN_AMD64=$(curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz" | shasum -a 256 | awk '{print $1}')
+          SHA_DARWIN_ARM64=$(curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz" | shasum -a 256 | awk '{print $1}')
+          SHA_LINUX_AMD64=$(curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz" | shasum -a 256 | awk '{print $1}')
+          SHA_LINUX_ARM64=$(curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz" | shasum -a 256 | awk '{print $1}')
+
+          cat > Formula/cliproxyapi.rb << 'MAINEOF'
+class Cliproxyapi < Formula
+  desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
+  homepage "https://github.com/router-for-me/CLIProxyAPI"
+  license "MIT"
+
+  version "VERSION_PLACEHOLDER"
+
+  on_macos do
+    on_intel do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_amd64.tar.gz"
+      sha256 "SHA_DARWIN_AMD64_PLACEHOLDER"
+    end
+    on_arm do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_aarch64.tar.gz"
+      sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_amd64.tar.gz"
+      sha256 "SHA_LINUX_AMD64_PLACEHOLDER"
+    end
+    on_arm do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_aarch64.tar.gz"
+      sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
     end
   end
 
@@ -106,30 +178,44 @@ class Cliproxyapi < Formula
   end
 
   test do
-    assert_match "CLIProxyAPI Version: ${{ steps.check.outputs.latest }}", shell_output("#{bin}/cliproxyapi version")
+    assert_match "CLIProxyAPI Version: VERSION_PLACEHOLDER", shell_output("#{bin}/cliproxyapi version")
   end
 end
-EOF
+MAINEOF
+
+          # 替换占位符
+          sed -i '' "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/cliproxyapi.rb
+          sed -i '' "s/SHA_DARWIN_AMD64_PLACEHOLDER/${SHA_DARWIN_AMD64}/g" Formula/cliproxyapi.rb
+          sed -i '' "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/cliproxyapi.rb
+          sed -i '' "s/SHA_LINUX_AMD64_PLACEHOLDER/${SHA_LINUX_AMD64}/g" Formula/cliproxyapi.rb
+          sed -i '' "s/SHA_LINUX_ARM64_PLACEHOLDER/${SHA_LINUX_ARM64}/g" Formula/cliproxyapi.rb
 
       - name: Create Pull Request
         if: steps.check.outputs.needs_update == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
-          commit-message: "chore: bump cliproxyapi to ${{ steps.check.outputs.latest }}"
-          title: "Update CLIProxyAPI to ${{ steps.check.outputs.latest }}"
+          commit-message: "chore: add new CLIProxyAPI versions (${{ steps.check.outputs.new_versions }})"
+          title: "Add CLIProxyAPI versions: ${{ steps.check.outputs.new_versions }}"
           body: |
-            Automatically updated from ${{ steps.check.outputs.current }} to ${{ steps.check.outputs.latest }}
+            Automatically added new versions from upstream repository.
 
-            Changes:
-            - Updated macOS Intel SHA: `${{ steps.shas.outputs.darwin_amd64 }}`
-            - Updated macOS ARM SHA: `${{ steps.shas.outputs.darwin_arm64 }}`
-            - Updated Linux Intel SHA: `${{ steps.shas.outputs.linux_amd64 }}`
-            - Updated Linux ARM SHA: `${{ steps.shas.outputs.linux_arm64 }}`
-          branch: update/cliproxyapi-${{ steps.check.outputs.latest }}
+            **New versions added:**
+            ${{ steps.check.outputs.new_versions }}
+
+            **Latest version:** ${{ steps.check.outputs.latest_version }}
+
+            Users can now install any version with:
+            ```bash
+            brew install cliproxyapi@7.2.90
+            brew install cliproxyapi@7.2.91
+            # or latest
+            brew install cliproxyapi
+            ```
+          branch: update/versions-${{ github.run_number }}
           delete-branch: true
           labels: dependencies, automated
 
       - name: Notify - No update needed
         if: steps.check.outputs.needs_update == 'false'
         run: |
-          echo "✅ Already at latest version: ${{ steps.check.outputs.current }}"
+          echo "✅ All versions are up to date"
