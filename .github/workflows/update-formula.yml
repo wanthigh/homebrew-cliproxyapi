@@ -3,7 +3,7 @@ name: Update Formula with Latest Versions
 on:
   schedule:
     # 每30分钟运行一次
-    - cron: '*/30 * * * *'
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -192,6 +192,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.check.outputs.needs_update == 'true'
+        id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: "chore: add new CLIProxyAPI versions (${{ steps.check.outputs.new_versions }})"
@@ -214,6 +215,8 @@ jobs:
           branch: update/versions-${{ github.run_number }}
           delete-branch: true
           labels: dependencies, automated
+          auto-merge: true
+          merge-method: merge
 
       - name: Notify - No update needed
         if: steps.check.outputs.needs_update == 'false'
