@@ -75,44 +75,44 @@ jobs:
 
             # 创建版本化的 formula
             cat > "Formula/cliproxyapi@${VERSION}.rb" << EOF
-class ${CLASS_NAME} < Formula
-  desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
-  homepage "https://github.com/router-for-me/CLIProxyAPI"
-  license "MIT"
+          class ${CLASS_NAME} < Formula
+            desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
+            homepage "https://github.com/router-for-me/CLIProxyAPI"
+            license "MIT"
 
-  version "${VERSION}"
+            version "${VERSION}"
 
-  on_macos do
-    on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz"
-      sha256 "${SHA_DARWIN_AMD64}"
-    end
-    on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz"
-      sha256 "${SHA_DARWIN_ARM64}"
-    end
-  end
+            on_macos do
+              on_intel do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_amd64.tar.gz"
+                sha256 "${SHA_DARWIN_AMD64}"
+              end
+              on_arm do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_darwin_aarch64.tar.gz"
+                sha256 "${SHA_DARWIN_ARM64}"
+              end
+            end
 
-  on_linux do
-    on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz"
-      sha256 "${SHA_LINUX_AMD64}"
-    end
-    on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz"
-      sha256 "${SHA_LINUX_ARM64}"
-    end
-  end
+            on_linux do
+              on_intel do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_amd64.tar.gz"
+                sha256 "${SHA_LINUX_AMD64}"
+              end
+              on_arm do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz"
+                sha256 "${SHA_LINUX_ARM64}"
+              end
+            end
 
-  def install
-    bin.install "cli-proxy-api" => "cliproxyapi"
-  end
+            def install
+              bin.install "cli-proxy-api" => "cliproxyapi"
+            end
 
-  test do
-    assert_match "CLIProxyAPI Version: ${VERSION}", shell_output("#{bin}/cliproxyapi version")
-  end
-end
-EOF
+            test do
+              assert_match "CLIProxyAPI Version: ${VERSION}", shell_output("#{bin}/cliproxyapi version")
+            end
+          end
+          EOF
 
             echo "Created Formula/cliproxyapi@${VERSION}.rb"
           done
@@ -132,56 +132,56 @@ EOF
           SHA_LINUX_ARM64=$(curl -sL "https://github.com/router-for-me/CLIProxyAPI/releases/download/v${VERSION}/CLIProxyAPI_${VERSION}_linux_aarch64.tar.gz" | shasum -a 256 | awk '{print $1}')
 
           cat > Formula/cliproxyapi.rb << 'MAINEOF'
-class Cliproxyapi < Formula
-  desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
-  homepage "https://github.com/router-for-me/CLIProxyAPI"
-  license "MIT"
+          class Cliproxyapi < Formula
+            desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
+            homepage "https://github.com/router-for-me/CLIProxyAPI"
+            license "MIT"
 
-  version "VERSION_PLACEHOLDER"
+            version "VERSION_PLACEHOLDER"
 
-  on_macos do
-    on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_amd64.tar.gz"
-      sha256 "SHA_DARWIN_AMD64_PLACEHOLDER"
-    end
-    on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_aarch64.tar.gz"
-      sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
-    end
-  end
+            on_macos do
+              on_intel do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_amd64.tar.gz"
+                sha256 "SHA_DARWIN_AMD64_PLACEHOLDER"
+              end
+              on_arm do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_darwin_aarch64.tar.gz"
+                sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
+              end
+            end
 
-  on_linux do
-    on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_amd64.tar.gz"
-      sha256 "SHA_LINUX_AMD64_PLACEHOLDER"
-    end
-    on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_aarch64.tar.gz"
-      sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
-    end
-  end
+            on_linux do
+              on_intel do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_amd64.tar.gz"
+                sha256 "SHA_LINUX_AMD64_PLACEHOLDER"
+              end
+              on_arm do
+                url "https://github.com/router-for-me/CLIProxyAPI/releases/download/vVERSION_PLACEHOLDER/CLIProxyAPI_VERSION_PLACEHOLDER_linux_aarch64.tar.gz"
+                sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
+              end
+            end
 
-  def install
-    bin.install "cli-proxy-api" => "cliproxyapi"
-  end
+            def install
+              bin.install "cli-proxy-api" => "cliproxyapi"
+            end
 
-  def post_install
-    (etc/"cliproxyapi.conf.default").write <<~EOS
-      # CLIProxyAPI Configuration File
-      # Edit this file to configure cliproxyapi
-    EOS
-  end
+            def post_install
+              (etc/"cliproxyapi.conf.default").write <<~EOS
+                # CLIProxyAPI Configuration File
+                # Edit this file to configure cliproxyapi
+              EOS
+            end
 
-  service do
-    run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
-    keep_alive true
-  end
+            service do
+              run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
+              keep_alive true
+            end
 
-  test do
-    assert_match "CLIProxyAPI Version: VERSION_PLACEHOLDER", shell_output("#{bin}/cliproxyapi version")
-  end
-end
-MAINEOF
+            test do
+              assert_match "CLIProxyAPI Version: VERSION_PLACEHOLDER", shell_output("#{bin}/cliproxyapi version")
+            end
+          end
+          MAINEOF
 
           # 替换占位符
           sed -i '' "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/cliproxyapi.rb
