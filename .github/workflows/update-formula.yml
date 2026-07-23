@@ -2,8 +2,8 @@ name: Update Formula with Latest Versions
 
 on:
   schedule:
-    # 每30分钟运行一次
-    - cron: "*/30 * * * *"
+    # 每5分钟运行一次
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
