@@ -31,20 +31,31 @@ class Cliproxyapi < Formula
     bin.install "cli-proxy-api" => "cliproxyapi"
   end
 
-  def post_install
-    unless File.exist?(etc/"cliproxyapi.conf")
-      (etc/"cliproxyapi.conf.default").write <<~EOS
-        # CLIProxyAPI Configuration File
-        # Edit this file to configure cliproxyapi
-      EOS
-    end
-  end
-
-  service do
-    run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
-    keep_alive true
-    log_path var/"log/cliproxyapi.log"
-    error_log_path var/"log/cliproxyapi.error.log"
+  def plist
+    <<~EOS
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>Label</key>
+        <string>#{plist_name}</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>#{opt_bin}/cliproxyapi</string>
+          <string>-config</string>
+          <string>#{etc}/cliproxyapi.conf</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>KeepAlive</key>
+        <true/>
+        <key>StandardOutPath</key>
+        <string>#{var}/log/cliproxyapi.log</string>
+        <key>StandardErrorPath</key>
+        <string>#{var}/log/cliproxyapi.error.log</string>
+      </dict>
+      </plist>
+    EOS
   end
 
   test do
