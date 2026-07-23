@@ -1,19 +1,33 @@
 # Homebrew CLIProxyAPI
 
-Homebrew tap for CLIProxyAPI, providing specific versions like 7.2.90.
+Homebrew tap for CLIProxyAPI, providing all versions from 7.2.47 onwards.
 
 ## Installation
 
 ```bash
 brew tap wanthigh/cliproxyapi
-brew install cliproxyapi
+brew install wanthigh/cliproxyapi/cliproxyapi
 ```
 
-## Uninstall
+## Setup Alias (Optional)
+
+To avoid typing the full tap name every time, add this alias to your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-brew uninstall cliproxyapi
-brew untap wanthigh/cliproxyapi
+alias cliproxyapi='brew install wanthigh/cliproxyapi/cliproxyapi'
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc  # or source ~/.bashrc
+```
+
+Now you can simply use:
+
+```bash
+cliproxyapi      # Install latest version
+cliproxyapi@7.2.90  # Install specific version
 ```
 
 ## Usage
@@ -28,13 +42,25 @@ cliproxyapi -config /path/to/config.yaml
 To start as a service:
 
 ```bash
-brew services start cliproxyapi
-brew services stop cliproxyapi
-brew services restart cliproxyapi
+brew services start wanthigh/cliproxyapi/cliproxyapi
+brew services stop wanthigh/cliproxyapi/cliproxyapi
+brew services restart wanthigh/cliproxyapi/cliproxyapi
 ```
 
-## Version
+## Install Specific Version
 
-This tap currently provides CLIProxyAPI version 7.2.90.
+```bash
+brew install wanthigh/cliproxyapi/cliproxyapi@7.2.90
+brew install wanthigh/cliproxyapi/cliproxyapi@7.2.95
+```
 
-For more information, visit [CLIProxyAPI GitHub](https://github.com/router-for-me/CLIProxyAPI).
+## Uninstall
+
+```bash
+brew uninstall wanthigh/cliproxyapi/cliproxyapi
+brew untap wanthigh/cliproxyapi
+```
+
+## Updates
+
+This tap automatically updates every 30 minutes with the latest CLIProxyAPI releases from [CLIProxyAPI GitHub](https://github.com/router-for-me/CLIProxyAPI).
