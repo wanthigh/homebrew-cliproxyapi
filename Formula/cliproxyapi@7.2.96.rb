@@ -1,4 +1,4 @@
-class Cliproxyapi < Formula
+class CliproxyapiAT7296 < Formula
   desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
   homepage "https://github.com/router-for-me/CLIProxyAPI"
   license "MIT"
@@ -29,18 +29,6 @@ class Cliproxyapi < Formula
 
   def install
     bin.install "cli-proxy-api" => "cliproxyapi"
-  end
-
-  def post_install
-    (etc/"cliproxyapi.conf.default").write <<~EOS
-      # CLIProxyAPI Configuration File
-      # Edit this file to configure cliproxyapi
-    EOS
-  end
-
-  service do
-    run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
-    keep_alive true
   end
 
   test do
