@@ -63,4 +63,4 @@ brew untap wanthigh/cliproxyapi
 
 ## Updates
 
-This tap automatically updates every 30 minutes with the latest CLIProxyAPI releases from [CLIProxyAPI GitHub](https://github.com/router-for-me/CLIProxyAPI).
+This tap automatically updates every 5 minutes with the latest CLIProxyAPI releases from [CLIProxyAPI GitHub](https://github.com/router-for-me/CLIProxyAPI).
