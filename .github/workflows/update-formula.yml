@@ -129,6 +129,11 @@ jobs:
               bin.install "cli-proxy-api" => "cliproxyapi"
             end
 
+            service do
+              run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
+              keep_alive true
+            end
+
             test do
               assert_match "CLIProxyAPI Version: ${VERSION}", shell_output("#{bin}/cliproxyapi version")
             end
