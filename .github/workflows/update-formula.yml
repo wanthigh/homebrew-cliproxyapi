@@ -242,10 +242,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+          BRANCH_NAME: ${{ steps.cpr.outputs.pull-request-head-sha }}
         run: |
           echo "Waiting for PR checks to complete..."
           sleep 5
           gh pr merge "$PR_NUMBER" --auto --merge --repo ${{ github.repository }}
+
+          # 删除分支
+          BRANCH=$(gh pr view "$PR_NUMBER" --repo ${{ github.repository }} --json headRefName --jq '.headRefName')
+          echo "Deleting branch: $BRANCH"
+          git push origin --delete "$BRANCH" 2>/dev/null || gh api "repos/${{ github.repository }}/git/refs/heads/$BRANCH" -X DELETE
 
       - name: Notify - No update needed
         if: steps.check.outputs.needs_update == 'false'
