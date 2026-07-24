@@ -20,7 +20,26 @@ jobs:
         id: check
         run: |
           # 获取 GitHub 上最新的50个版本
-          GITHUB_VERSIONS=$(curl -s "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases?per_page=50" | jq -r '.[].tag_name' | sed 's/v//' | sort -V)
+          API_RESPONSE=$(curl -s "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases?per_page=50&prerelease=false")
+
+          # 调试：打印 API 响应
+          echo "API Response: $API_RESPONSE" | head -100
+
+          # 检查响应是否为有效 JSON
+          if ! echo "$API_RESPONSE" | jq empty 2>/dev/null; then
+            echo "❌ Invalid JSON response from GitHub API"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 提取版本号并排序
+          GITHUB_VERSIONS=$(echo "$API_RESPONSE" | jq -r '.[].tag_name' 2>/dev/null | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+
+          if [ -z "$GITHUB_VERSIONS" ]; then
+            echo "❌ No versions found in API response"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
           # 找出新增的版本（本地没有的）
           NEW_VERSIONS=""
@@ -38,10 +57,10 @@ jobs:
 
           if [ -n "$NEW_VERSIONS" ]; then
             echo "needs_update=true" >> $GITHUB_OUTPUT
-            echo "Found new versions: $NEW_VERSIONS"
+            echo "✅ Found new versions: $NEW_VERSIONS"
           else
             echo "needs_update=false" >> $GITHUB_OUTPUT
-            echo "No new versions found"
+            echo "✅ No new versions found"
           fi
 
       - name: Generate formulas for new versions
