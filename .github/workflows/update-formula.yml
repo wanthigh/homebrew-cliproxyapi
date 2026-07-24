@@ -18,9 +18,11 @@ jobs:
 
       - name: Check for new versions
         id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          # 获取 GitHub 上最新的50个版本
-          API_RESPONSE=$(curl -s "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases?per_page=50&prerelease=false")
+          # 获取 GitHub 上最新的50个版本（使用认证令牌避免速率限制）
+          API_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/router-for-me/CLIProxyAPI/releases?per_page=50&prerelease=false")
 
           # 调试：打印 API 响应
           echo "API Response: $API_RESPONSE" | head -100
