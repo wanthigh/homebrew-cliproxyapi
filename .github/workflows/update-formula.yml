@@ -215,8 +215,16 @@ jobs:
           branch: update/versions-${{ github.run_number }}
           delete-branch: true
           labels: dependencies, automated
-          auto-merge: true
-          merge-method: merge
+
+      - name: Auto-merge Pull Request
+        if: steps.check.outputs.needs_update == 'true' && steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Waiting for PR checks to complete..."
+          sleep 5
+          gh pr merge "$PR_NUMBER" --auto --merge --repo ${{ github.repository }}
 
       - name: Notify - No update needed
         if: steps.check.outputs.needs_update == 'false'
