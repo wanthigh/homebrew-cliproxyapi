@@ -1,0 +1,42 @@
+class CliproxyapiAT8056 < Formula
+  desc "Wrap Gemini CLI, Codex, Claude Code, Qwen Code as an API service"
+  homepage "https://github.com/router-for-me/CLIProxyAPI"
+  license "MIT"
+
+  version "8.0.56"
+
+  on_macos do
+    on_intel do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.56/CLIProxyAPI_8.0.56_darwin_amd64.tar.gz"
+      sha256 "68a40da80b87c8e4d4e66453e04a44183767ea593e1070661ed92e3855558b51"
+    end
+    on_arm do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.56/CLIProxyAPI_8.0.56_darwin_aarch64.tar.gz"
+      sha256 "356bb4c64d3ef0238192481be1d0efde6d495bba74bdefe60badbc5dce698799"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.56/CLIProxyAPI_8.0.56_linux_amd64.tar.gz"
+      sha256 "6f313dfdfbb62154de97a446cfc47d5a3419723484ea9f3bc1fb0a3015d195e7"
+    end
+    on_arm do
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.56/CLIProxyAPI_8.0.56_linux_aarch64.tar.gz"
+      sha256 "1bbe291232849f1707630d817d70c994cd1e9da40c070035b52d113683557f68"
+    end
+  end
+
+  def install
+    bin.install "cli-proxy-api" => "cliproxyapi"
+  end
+
+  service do
+    run [opt_bin/"cliproxyapi", "-config", etc/"cliproxyapi.conf"]
+    keep_alive true
+  end
+
+  test do
+    assert_match "CLIProxyAPI Version: 8.0.56", shell_output("#{bin}/cliproxyapi version")
+  end
+end
