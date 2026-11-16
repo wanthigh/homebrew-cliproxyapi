@@ -3,27 +3,27 @@ class Cliproxyapi < Formula
   homepage "https://github.com/router-for-me/CLIProxyAPI"
   license "MIT"
 
-  version "8.0.74"
+  version "8.0.75"
 
   on_macos do
     on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.74/CLIProxyAPI_8.0.74_darwin_amd64.tar.gz"
-      sha256 "788eed3efddb18d1bc9df89022201f88a4373e6e53c8711e16ae74fbef97c1b7"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.75/CLIProxyAPI_8.0.75_darwin_amd64.tar.gz"
+      sha256 "849cb6c66bd7ad393666c81d778a34949e17e0671ab18a67f4b7bde5fa8440ae"
     end
     on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.74/CLIProxyAPI_8.0.74_darwin_aarch64.tar.gz"
-      sha256 "22f29feb8646aee6b124ba0b4a974a92fbffd71d4c875da7e21ef36d698635f4"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.75/CLIProxyAPI_8.0.75_darwin_aarch64.tar.gz"
+      sha256 "d3bf29d17575a02f869f85d816ca1cfd00be287f3812f4cb55ec1b4f9dfb677a"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.74/CLIProxyAPI_8.0.74_linux_amd64.tar.gz"
-      sha256 "94205d5be11464c57fab5e05ebd44d73a89190f9410a13e9e78c67987738c26f"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.75/CLIProxyAPI_8.0.75_linux_amd64.tar.gz"
+      sha256 "a7bd6e595f5dd370cc91c17ed664980a8c647a2d07c1aa61ac74777c714df14f"
     end
     on_arm do
-      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.74/CLIProxyAPI_8.0.74_linux_aarch64.tar.gz"
-      sha256 "f783d366ee4660448e5365be21db82e32dfa1c0f5c5175addf79ee27828649c5"
+      url "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.75/CLIProxyAPI_8.0.75_linux_aarch64.tar.gz"
+      sha256 "f366c1ab4a6e9252e0c966ba2847a0c33dd964dbaed1c2070ec1b80bbf1fa4c6"
     end
   end
 
@@ -44,6 +44,6 @@ class Cliproxyapi < Formula
   end
 
   test do
-    assert_match "CLIProxyAPI Version: 8.0.74", shell_output("#{bin}/cliproxyapi version")
+    assert_match "CLIProxyAPI Version: 8.0.75", shell_output("#{bin}/cliproxyapi version")
   end
 end
